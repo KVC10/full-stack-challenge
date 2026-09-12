@@ -23,7 +23,7 @@ morgan.token("res-body", (req, res) => {
 app.use(morgan(":method :url :status :response-time ms - :res-body"));
 
 app.use(cors());
-
+app.use(express.static("dist"));
 const phonebook = [
   {
     id: "1",
@@ -100,4 +100,4 @@ app.post("/api/persons", (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT);
 
-console.log(`Server running on  http://localhost:${PORT}`);
+console.log(`Server running on  PORT: ${PORT}`);
