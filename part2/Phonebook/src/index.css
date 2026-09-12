@@ -1,0 +1,7 @@
+.message {
+  color: green;
+  border: solid 2px green;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: lightgray;
+}
