@@ -24,8 +24,7 @@ morgan.token("res-body", (req, res) => {
 app.use(morgan(":method :url :status :response-time ms - :res-body"));
 
 app.use(cors());
-app.use(express.static(path.join(__dirname, "dist")));
-
+app.use(express.static(path.join(__dirname, "part2", "dist")));
 const phonebook = [
   {
     id: "1",
