@@ -3,7 +3,8 @@ const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
 const path = require("path");
-const helmet = require("helmet");
+
+const __dirname = path.resolve();
 
 app.use(express.json());
 // 1. Middleware pour capturer le body de la réponse
@@ -25,15 +26,6 @@ morgan.token("res-body", (req, res) => {
 app.use(morgan(":method :url :status :response-time ms - :res-body"));
 
 app.use(cors());
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      fontSrc: ["'self'", "https://full-stack-challenge-fbpo.onrender.com"],
-      // Ajoutez d'autres directives si nécessaire
-    },
-  }),
-);
 
 const phonebook = [
   {
@@ -108,7 +100,10 @@ app.post("/api/persons", (req, res) => {
   res.json(newPerson);
 });
 
-app.use(express.static(path.join(__dirname, "part2", "dist")));
+app.use(express.static(path.join(__dirname, "../../part2/Phonebook/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../part2/Phonebook/dist/index.html"));
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT);
