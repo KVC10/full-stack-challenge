@@ -4,8 +4,6 @@ const app = express();
 const cors = require("cors");
 const path = require("path");
 
-const __dirname = path.resolve();
-
 app.use(express.json());
 // 1. Middleware pour capturer le body de la réponse
 app.use((req, res, next) => {
