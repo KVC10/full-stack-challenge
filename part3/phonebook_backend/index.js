@@ -34,7 +34,7 @@ app.use(
     },
   }),
 );
-app.use(express.static(path.join(__dirname, "part2", "dist")));
+
 const phonebook = [
   {
     id: "1",
@@ -107,6 +107,8 @@ app.post("/api/persons", (req, res) => {
   phonebook.push(newPerson);
   res.json(newPerson);
 });
+
+app.use(express.static(path.join(__dirname, "part2", "dist")));
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT);
