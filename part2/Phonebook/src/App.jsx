@@ -35,11 +35,9 @@ const App = () => {
       if (!areYouSure) {
         return;
       }
-      /*  personService
-        .modifyNumber(existingName.id, {
-          name: existingName.name,
-          number: number,
-        })
+
+      personService
+        .modifyNumber(existingName.id, { number: number })
         .then((data) => {
           setPersons(
             persons.map((el) => (el.id === existingName.id ? data : el)),
@@ -47,21 +45,11 @@ const App = () => {
           setNewName("");
           setNumber("");
           setMaessage(`Updated ${existingName.name}'s number`);
-
-          setTimeout(() => {
-            setMaessage(null);
-          }, 5000);
+          return;
         })
         .catch((error) => {
-          console.log(error);
-          setMaessage(
-            `Information of ${existingName.name} has already been removed from server`,
-          );
+          setMaessage(error.response.data.error);
         });
-      setTimeout(() => {
-        setMaessage(null);
-      }, 5000);
-      return; */
     }
 
     personService
@@ -74,6 +62,9 @@ const App = () => {
         setTimeout(() => {
           setMaessage(null);
         }, 5000);
+      })
+      .catch((error) => {
+        setMaessage(error.response.data.error);
       });
   };
 
