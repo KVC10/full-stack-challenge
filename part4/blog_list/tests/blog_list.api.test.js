@@ -15,7 +15,7 @@ const initialBlogs = [
     likes: 5,
   },
   {
-    title: "Browser can execute only JavaScript",
+    title: "Browser can execute  only JavaScript",
     author: "Jane Smith",
     url: "https://another-example.com",
     likes: 10,
@@ -36,20 +36,20 @@ beforeEach(async () => {
   await Blog.insertMany(initialBlogs);
 });
 
-test.only("blogs are returned as json", async () => {
+test("blogs are returned as json", async () => {
   await api
     .get("/api/blogs")
     .expect(200)
     .expect("Content-Type", /application\/json/);
 });
 
-test.only("identifier property of the blog posts is named id", async () => {
+test("identifier property of the blog posts is named id", async () => {
   const response = await api.get("/api/blogs");
   const hasIdProperty = response.body[0].hasOwnProperty("id");
   assert.strictEqual(hasIdProperty, true);
 });
 
-test.only("add a new blog post", async () => {
+test("add a new blog post", async () => {
   const newBlog = {
     title: "New Blog Post",
     author: "Alice Johnson",
@@ -57,8 +57,16 @@ test.only("add a new blog post", async () => {
     likes: 0,
   };
 
+  //only authenticated users can add a new blog post, so we need to login first
+
+  const user = await api.post("/api/login").send({
+    username: "testuser",
+    password: "testpassword",
+  });
+
   await api
     .post("/api/blogs")
+    .set("Authorization", `Bearer ${user.body.token}`)
     .send(newBlog)
     .expect(201)
     .expect("Content-Type", /application\/json/);
@@ -67,15 +75,21 @@ test.only("add a new blog post", async () => {
   assert.strictEqual(response.body.length, initialBlogs.length + 1);
 });
 
-test.only("if likes property is missing, it defaults to 0", async () => {
+test("if likes property is missing, it defaults to 0", async () => {
   const newBlog = {
     title: "Blog Without Likes",
     author: "Bob Wilson",
     url: "https://blog-without-likes.com",
   };
 
+  const user = await api.post("/api/login").send({
+    username: "testuser",
+    password: "testpassword",
+  });
+
   await api
     .post("/api/blogs")
+    .set("Authorization", `Bearer ${user.body.token}`)
     .send(newBlog)
     .expect(201)
     .expect("Content-Type", /application\/json/);
@@ -85,26 +99,63 @@ test.only("if likes property is missing, it defaults to 0", async () => {
   assert.strictEqual(response.body[response.body.length - 1].likes, 0);
 });
 
-test.only("if title and url properties are missing, respond with 400 Bad Request", async () => {
+test("if title and url properties are missing, respond with 400 Bad Request", async () => {
   const newBlog = {
     author: "Alice Johnson",
     likes: 0,
   };
 
-  await api.post("/api/blogs").send(newBlog).expect(400);
+  const user = await api.post("/api/login").send({
+    username: "testuser",
+    password: "testpassword",
+  });
+
+  await api
+    .post("/api/blogs")
+    .set("Authorization", `Bearer ${user.body.token}`)
+    .send(newBlog)
+    .expect(400);
 });
 
-test.only("delete a blog post", async () => {
+test("delete a blog post", async () => {
+  const user = await api.post("/api/login").send({
+    username: "testuser",
+    password: "testpassword",
+  });
+
   const response = await api.get("/api/blogs");
   const blogToDelete = response.body[0];
-  await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .set("Authorization", `Bearer ${user.body.token}`)
+    .expect(204);
 });
 
-test.only("update blog post", async () => {
+test("update blog post", async () => {
   const res = await api.get("/api/blogs");
   const blogToUpdate = res.body[0];
   const newBlog = { ...blogToUpdate, likes: blogToUpdate.likes + 1 };
-  await api.put(`/api/blogs/${blogToUpdate.id}`).send(newBlog).expect(200);
+  await api
+    .put(`/api/blogs/${blogToUpdate.id}`)
+    .set("Authorization", `Bearer ${user.body.token}`)
+    .send(newBlog)
+    .expect(200);
+});
+
+test("if a token is not provided, respond with 401 Unauthorized", async () => {
+  const newBlog = {
+    title: "New Blog Post",
+    author: "Alice Johnson",
+    url: "https://new-blog-post.com",
+    likes: 0,
+  };
+
+  /* const user = await api.post("/api/login").send({
+    username: "testuser",
+    password: "testpassword",
+  }); */
+
+  await api.post("/api/blogs").send(newBlog).expect(401);
 });
 
 /* beforeEach(async () => {

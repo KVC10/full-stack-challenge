@@ -1,40 +1,97 @@
 const router = require("express").Router();
 const Blog = require("../models/blog");
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
+const middleware = require("../utils/middleware");
+
+/* const getTokenFrom = (request) => {
+  const authorization = request.get("authorization");
+  if (authorization && authorization.startsWith("Bearer ")) {
+    return authorization.replace("Bearer ", "");
+  }
+  return null;
+}; */
 
 router.get("/", async (request, response) => {
-  const blogs = await Blog.find({});
+  const blogs = await Blog.find({}).populate("user", { username: 1, name: 1 });
   response.json(blogs);
 });
 
-router.post("/", async (request, response) => {
-  const newBlog = request.body;
-  if (!newBlog.likes) {
-    newBlog.likes = 0;
-  }
+router.post(
+  "/",
+  middleware.tokenExtractor,
+  middleware.userExtractor,
+  async (request, response) => {
+    const newBlog = request.body;
 
-  if (!newBlog.title || !newBlog.url) {
-    return response.status(400).json({ error: "title and url are required" });
-  }
-  const blog = new Blog(newBlog);
+    /* const decodedToken = jwt.verify(request.token, process.env.SECRET);
 
-  const result = await blog.save();
-  response.status(201).json(result);
-});
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: "token invalid" });
+  } */
 
-router.delete("/:id", async (request, response) => {
-  const id = request.params.id;
-  await Blog.findByIdAndDelete(id);
-  response.status(204).end();
-});
+    const user = request.user;
 
-router.put("/:id", async (request, response) => {
-  const id = request.params.id;
-  const updatedBlog = request.body;
-  const result = await Blog.findByIdAndUpdate(id, updatedBlog, {
-    returnDocument: "after",
-  });
-  response.json(result);
-});
+    if (!user) {
+      return response.status(401).json({ error: "user not found" });
+    }
+
+    if (!newBlog.likes) {
+      newBlog.likes = 0;
+    }
+
+    if (!newBlog.title || !newBlog.url) {
+      return response.status(400).json({ error: "title and url are required" });
+    }
+    const blog = new Blog({
+      ...newBlog,
+      user: user.id,
+    });
+
+    const result = await blog.save();
+    response.status(201).json(result);
+  },
+);
+
+router.delete(
+  "/:id",
+  middleware.tokenExtractor,
+  middleware.userExtractor,
+  async (request, response) => {
+    const id = request.params.id;
+    const user = request.user;
+
+    if (!user) {
+      return response.status(401).json({ error: "user not found" });
+    }
+
+    const blog = await Blog.findById(id);
+    if (!blog) {
+      return response.status(404).json({ error: "blog not found" });
+    }
+    if (blog.user.toString() !== user.id.toString()) {
+      return response.status(403).json({ error: "forbidden" });
+    }
+
+    await Blog.findByIdAndDelete(id);
+
+    response.status(204).end();
+  },
+);
+
+router.put(
+  "/:id",
+  middleware.tokenExtractor,
+  middleware.userExtractor,
+  async (request, response) => {
+    const id = request.params.id;
+    const updatedBlog = request.body;
+    const result = await Blog.findByIdAndUpdate(id, updatedBlog, {
+      returnDocument: "after",
+    });
+    response.json(result);
+  },
+);
 
 /* const updatedUser = await User.findOneAndUpdate(
   { email: 'test@example.com' },
