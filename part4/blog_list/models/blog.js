@@ -6,10 +6,8 @@ mongoose
   .connect(mongoUrl, { family: 4 })
   .then(() => {
     console.log("connected to MongoDB");
-    console.log(mongoUrl);
   })
   .catch((error) => {
-    console.log(mongoUrl);
     console.log("error connecting to MongoDB:", error.message);
   });
 
@@ -33,4 +31,5 @@ blogSchema.set("toJSON", {
 });
 
 const Blog = mongoose.model("Blog", blogSchema);
+
 module.exports = Blog;

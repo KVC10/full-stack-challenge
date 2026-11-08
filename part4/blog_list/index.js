@@ -14,6 +14,11 @@ app.use("/api/blogs", blogRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/login", loginRouter);
 
+if (process.env.NODE_ENV === "test") {
+  const testingRouter = require("./controllers/testing");
+  app.use("/api/testing", testingRouter);
+}
+
 const errorHandler = (error, request, response, next) => {
   logger.error(error.message);
 
@@ -46,8 +51,10 @@ app.use(errorHandler);
 /* const PORT = 3003; */
 app.listen(config.PORT, () => {
   logger.info(`Server running on port ${config.PORT}`);
+  console.log(`Server running on port ${config.PORT}`);
 });
 
 /* s5hpvSLDEp0hkj7u;
  */
+
 module.exports = app;
